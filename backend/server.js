@@ -131,6 +131,13 @@ app.post("/login", async (req, res) => {
   }
 });
 
+// ✅ Get current user profile
+app.get("/me", (req, res) => {
+  if (!req.user) return res.status(401).json({ success: false, message: "Not authenticated" });
+  const { fullName, email, phone, address } = req.user;
+  res.json({ success: true, user: { fullName, email, phone, address } });
+});
+
 // ✅ View all registered users (for testing/admin only)
 app.get("/users", async (req, res) => {
   try {

@@ -41,10 +41,10 @@ function App() {
     const savedUser = localStorage.getItem("user");
     if (savedUser) {
       setLoggedIn(true);
+      setEmail(savedUser);
       setFullName(localStorage.getItem("fullName") || "");
       setAddress(localStorage.getItem("address") || "");
       setPhone(localStorage.getItem("phone") || "");
-      setEmail(savedUser);
     }
 
     const canvas = canvasRef.current;
@@ -56,6 +56,31 @@ function App() {
     setHistory([initial]);
     setHistoryIndex(0);
   }, [boardBg]);
+
+  useEffect(() => {
+    if (!loggedIn) return;
+
+    fetch("http://localhost:5003/me", {
+      credentials: "include"
+    })
+      .then((res) => res.json())
+      .then((result) => {
+        if (result.success && result.user) {
+          const user = result.user;
+          setFullName(user.fullName || "");
+          setAddress(user.address || "");
+          setPhone(user.phone || "");
+          setEmail(user.email || "");
+          localStorage.setItem("user", user.email || "");
+          localStorage.setItem("fullName", user.fullName || "");
+          localStorage.setItem("address", user.address || "");
+          localStorage.setItem("phone", user.phone || "");
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load current user", err);
+      });
+  }, [loggedIn]);
 
   useEffect(() => {
     if (!loggedIn) return;
@@ -476,7 +501,7 @@ function App() {
             </div>
 
             <div style={{ marginBottom: "16px", textAlign: "left", border: "1px solid #ddd", borderRadius: "10px", padding: "12px", background: "#f9f9f9" }}>
-              <h3>Welcome, {email || "Guest"}</h3>
+              <h3>Welcome, {fullName || email || "Guest"}</h3>
               {isEditingProfile ? (
                 <>
                   <input placeholder="Full Name" value={fullName} onChange={(e)=>setFullName(e.target.value)} style={{...inputStyle, margin: "5px 0"}}/>
