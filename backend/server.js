@@ -25,9 +25,21 @@ const userSchema = new mongoose.Schema({
 const User = mongoose.model("User", userSchema);
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: "http://localhost:5174",
+  credentials: true
+}));
 app.use(express.json());
-app.use(session({ secret: process.env.SESSION_SECRET || "secret123", resave: false, saveUninitialized: true }));
+app.use(session({ 
+  secret: process.env.SESSION_SECRET || "secret123", 
+  resave: false, 
+  saveUninitialized: true,
+  cookie: {
+    httpOnly: true,
+    secure: false, // set to true in production with HTTPS
+    sameSite: 'lax'
+  }
+}));
 app.use(passport.initialize());
 app.use(passport.session());
 
