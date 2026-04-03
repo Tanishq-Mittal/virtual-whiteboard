@@ -157,14 +157,20 @@ app.put("/profile", async (req, res) => {
   if (!req.user) return res.status(401).json({ success: false, message: "Not authenticated" });
   try {
     const { fullName, address, phone } = req.body;
-    if (!fullName || !address || !phone) {
-      return res.status(400).json({ success: false, message: "All fields are required" });
+    const updateData = {};
+    if (fullName !== undefined) updateData.fullName = fullName.trim();
+    if (address !== undefined) updateData.address = address.trim();
+    if (phone !== undefined) {
+      const phoneRegex = /^\+?[0-9]{7,15}$/;
+      if (!phoneRegex.test(phone.trim())) {
+        return res.status(400).json({ success: false, message: "Invalid phone number" });
+      }
+      updateData.phone = phone.trim();
     }
-    const phoneRegex = /^\+?[0-9]{7,15}$/;
-    if (!phoneRegex.test(phone)) {
-      return res.status(400).json({ success: false, message: "Invalid phone number" });
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ success: false, message: "No valid fields to update" });
     }
-    await User.findByIdAndUpdate(req.user._id, { fullName, address, phone });
+    await User.findByIdAndUpdate(req.user._id, updateData);
     res.json({ success: true, message: "Profile updated successfully" });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

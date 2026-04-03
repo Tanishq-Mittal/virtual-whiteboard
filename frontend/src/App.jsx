@@ -226,12 +226,8 @@ function App() {
   };
 
   const updateProfile = async () => {
-    if (!fullName || !address || !phone) {
-      alert("⚠️ Please fill all fields");
-      return;
-    }
     const phoneRegex = /^\+?[0-9]{7,15}$/;
-    if (!phoneRegex.test(phone.trim())) {
+    if (phone && !phoneRegex.test(phone.trim())) {
       alert("⚠️ Please enter a valid phone number");
       return;
     }
