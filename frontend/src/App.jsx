@@ -217,31 +217,40 @@ function App() {
     return;
   }
 
-  const res = await fetch(`${API_URL}/register`, {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    credentials: 'include',
-    body: JSON.stringify({
-      fullName: fullName.trim(),
-      address: address.trim(),
-      phone: phone.trim(),
-      email: email.trim().toLowerCase(),
-      password: password.trim()
-    })
-  });
+  try {
+    const res = await fetch(`${API_URL}/register`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      credentials: 'include',
+      body: JSON.stringify({
+        fullName: fullName.trim(),
+        address: address.trim(),
+        phone: phone.trim(),
+        email: email.trim().toLowerCase(),
+        password: password.trim()
+      })
+    });
 
-  const data = await res.json();
-  
-  if (data.success) {
-    alert("✅ Registered Successfully! Please login now.");
-    setFullName("");
-    setAddress("");
-    setPhone("");
-    setEmail("");
-    setPassword("");
-    setIsRegister(false);
-  } else {
-    alert(`❌ Registration Failed: ${data.message}`);
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`);
+    }
+
+    const data = await res.json();
+    
+    if (data.success) {
+      alert("✅ Registered Successfully! Please login now.");
+      setFullName("");
+      setAddress("");
+      setPhone("");
+      setEmail("");
+      setPassword("");
+      setIsRegister(false);
+    } else {
+      alert(`❌ Registration Failed: ${data.message || 'Unknown error'}`);
+    }
+  } catch (err) {
+    console.error("Register error:", err);
+    alert(`❌ Registration Error: ${err.message}. Is the backend server running at ${API_URL}?`);
   }
 };
 
@@ -257,29 +266,40 @@ function App() {
     alert("⚠️ Please enter a valid email address (e.g. user@example.com)");
     return;
   }
-  const res = await fetch(`${API_URL}/login`, {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    credentials: 'include',
-    body: JSON.stringify({ email: email.trim().toLowerCase(), password: password.trim() })
-  });
 
-  const data = await res.json();
+  try {
+    const res = await fetch(`${API_URL}/login`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      credentials: 'include',
+      body: JSON.stringify({ email: email.trim().toLowerCase(), password: password.trim() })
+    });
 
-  if (data.success) {
-    setLoggedIn(true);
-    setFullName(data.user?.fullName || "");
-    setAddress(data.user?.address || "");
-    setPhone(data.user?.phone || "");
-    setEmail(data.user?.email || email.trim().toLowerCase());
-    localStorage.setItem("user", data.user?.email || email.trim().toLowerCase());
-    localStorage.setItem("fullName", data.user?.fullName || "");
-    localStorage.setItem("phone", data.user?.phone || "");
-    localStorage.setItem("address", data.user?.address || "");
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`);
+    }
 
-    alert("🎉 Login Successful! Welcome to Whiteboard");
-  } else {
-    alert(`❌ Login Failed: ${data.message}`);
+    const data = await res.json();
+
+    if (data.success) {
+      setLoggedIn(true);
+      setFullName(data.user?.fullName || "");
+      setAddress(data.user?.address || "");
+      setPhone(data.user?.phone || "");
+      setEmail(data.user?.email || email.trim().toLowerCase());
+      localStorage.setItem("user", data.user?.email || email.trim().toLowerCase());
+      localStorage.setItem("fullName", data.user?.fullName || "");
+      localStorage.setItem("phone", data.user?.phone || "");
+      localStorage.setItem("address", data.user?.address || "");
+      setPassword("");
+
+      alert("🎉 Login Successful! Welcome to Whiteboard");
+    } else {
+      alert(`❌ Login Failed: ${data.message || 'Unknown error'}`);
+    }
+  } catch (err) {
+    console.error("Login error:", err);
+    alert(`❌ Login Error: ${err.message}. Is the backend server running at ${API_URL}?`);
   }
 };
 
