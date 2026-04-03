@@ -4,9 +4,12 @@ const session = require("express-session");
 const passport = require("passport");
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
+const http = require("http");
+const { Server } = require("socket.io");
 require("dotenv").config();
 
 const app = express();
+const server = http.createServer(app);
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost:27017/whiteboard");
@@ -185,14 +188,11 @@ app.put("/profile", async (req, res) => {
 });
 
 // Real-time socket.io collaboration
-const http = require("http");
-const { Server } = require("socket.io");
-const server = http.createServer(app);
-
 const io = new Server(server, {
   cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
+    origin: ["http://localhost:5173", "http://localhost:5174", "http://127.0.0.1:5173"],
+    methods: ["GET", "POST"],
+    credentials: true
   }
 });
 
@@ -216,4 +216,8 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(process.env.PORT || 5000, () => console.log(`Server running on port ${process.env.PORT || 5000}`));
+server.listen(process.env.PORT || 5003, () => {
+  console.log(`✅ Server running on port ${process.env.PORT || 5003}`);
+  console.log(`🌐 CORS enabled for http://localhost:5173`);
+  console.log(`🗄️  MongoDB connected`);
+});
