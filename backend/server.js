@@ -29,7 +29,12 @@ const User = mongoose.model("User", userSchema);
 
 // Middleware
 app.use(cors({
-  origin: ["http://localhost:5173", "http://localhost:5174", "http://127.0.0.1:5173"],
+  origin: [
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "http://127.0.0.1:5173",
+    "https://virtual-whiteboard-mu.vercel.app"
+  ],
   credentials: true
 }));
 app.use(express.json());
@@ -54,6 +59,18 @@ passport.deserializeUser(async (id, done) => {
   } catch (err) {
     done(err);
   }
+});
+
+// 🏥 Health Check Endpoint - TEST IF BACKEND IS RUNNING
+app.get("/health", (req, res) => {
+  res.json({ 
+    success: true, 
+    message: "Backend is running!",
+    api_url: process.env.API_URL || "not set",
+    port: process.env.PORT || 5003,
+    mongodb: mongoose.connection.readyState === 1 ? "✅ Connected" : "❌ Disconnected",
+    timestamp: new Date().toISOString()
+  });
 });
 
 // ✅ Register
@@ -190,7 +207,12 @@ app.put("/profile", async (req, res) => {
 // Real-time socket.io collaboration
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:5173", "http://localhost:5174", "http://127.0.0.1:5173"],
+    origin: [
+      "http://localhost:5173",
+      "http://localhost:5174",
+      "http://127.0.0.1:5173",
+      "https://virtual-whiteboard-mu.vercel.app"
+    ],
     methods: ["GET", "POST"],
     credentials: true
   }
@@ -216,8 +238,14 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(process.env.PORT || 5003, () => {
-  console.log(`✅ Server running on port ${process.env.PORT || 5003}`);
-  console.log(`🌐 CORS enabled for http://localhost:5173`);
-  console.log(`🗄️  MongoDB connected`);
-});
+// For Vercel deployment (serverless)
+if (process.env.VERCEL) {
+  module.exports = app;
+} else {
+  // For local development
+  server.listen(process.env.PORT || 5003, () => {
+    console.log(`✅ Server running on port ${process.env.PORT || 5003}`);
+    console.log(`🌐 CORS enabled for http://localhost:5173`);
+    console.log(`🗄️  MongoDB connected`);
+  });
+}
