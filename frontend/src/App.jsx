@@ -1,6 +1,8 @@
 import { useRef, useState, useEffect } from "react";
 import { io } from "socket.io-client";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5003";
+
 function App() {
   const canvasRef = useRef(null);
   const [drawing, setDrawing] = useState(false);
@@ -60,7 +62,7 @@ function App() {
   useEffect(() => {
     if (!loggedIn) return;
 
-    fetch("http://localhost:5003/me", {
+    fetch(`${API_URL}/me`, {
       credentials: "include"
     })
       .then((res) => res.json())
@@ -86,7 +88,7 @@ function App() {
     if (!loggedIn) return;
     if (socket) return;
 
-    const s = io("http://localhost:5003");
+    const s = io(API_URL);
     setSocket(s);
 
     s.on("connect", () => {
@@ -173,7 +175,7 @@ function App() {
     return;
   }
 
-  const res = await fetch("http://localhost:5003/register", {
+  const res = await fetch(`${API_URL}/register`, {
     method: "POST",
     headers: {"Content-Type": "application/json"},
     credentials: 'include',
@@ -213,7 +215,7 @@ function App() {
     alert("⚠️ Please enter a valid email address (e.g. user@example.com)");
     return;
   }
-  const res = await fetch("http://localhost:5003/login", {
+  const res = await fetch(`${API_URL}/login`, {
     method: "POST",
     headers: {"Content-Type": "application/json"},
     credentials: 'include',
@@ -257,7 +259,7 @@ function App() {
       return;
     }
 
-    const res = await fetch("http://localhost:5003/profile", {
+    const res = await fetch(`${API_URL}/profile`, {
       method: "PUT",
       headers: {"Content-Type": "application/json"},
       credentials: 'include',
