@@ -143,4 +143,36 @@ app.get("/users", async (req, res) => {
   }
 });
 
-app.listen(process.env.PORT || 5000, () => console.log(`Server running on port ${process.env.PORT || 5000}`));
+// Real-time socket.io collaboration
+const http = require("http");
+const { Server } = require("socket.io");
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
+});
+
+io.on("connection", (socket) => {
+  console.log(`socket connected ${socket.id}`);
+  socket.on("joinRoom", ({ room, user }) => {
+    socket.join(room);
+    socket.to(room).emit("userJoined", { user, id: socket.id });
+  });
+
+  socket.on("drawEvent", (payload) => {
+    if (payload.room) socket.to(payload.room).emit("drawEvent", payload);
+  });
+
+  socket.on("clearBoard", (room) => {
+    if (room) socket.to(room).emit("clearBoard");
+  });
+
+  socket.on("disconnect", () => {
+    console.log(`socket disconnected ${socket.id}`);
+  });
+});
+
+server.listen(process.env.PORT || 5000, () => console.log(`Server running on port ${process.env.PORT || 5000}`));

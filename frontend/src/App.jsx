@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from "react";
+import { io } from "socket.io-client";
 
 function App() {
   const canvasRef = useRef(null);
@@ -20,6 +21,9 @@ function App() {
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [theme, setTheme] = useState("dark");
   const [showGrid, setShowGrid] = useState(false);
+  const [room, setRoom] = useState("main");
+  const [socket, setSocket] = useState(null);
+  const lastPointRef = useRef(null);
 
   const pushHistory = () => {
     const canvas = canvasRef.current;
@@ -41,6 +45,7 @@ function App() {
       setPhone(localStorage.getItem("phone") || "");
       setEmail(savedUser);
     }
+
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -50,6 +55,52 @@ function App() {
     setHistory([initial]);
     setHistoryIndex(0);
   }, [boardBg]);
+
+  useEffect(() => {
+    if (!loggedIn) return;
+    if (socket) return;
+
+    const s = io("http://localhost:5000");
+    setSocket(s);
+
+    s.on("connect", () => {
+      s.emit("joinRoom", { room, user: fullName || email });
+    });
+
+    s.on("userJoined", (data) => {
+      console.log("User joined:", data);
+    });
+
+    s.on("drawEvent", (payload) => {
+      if (payload && payload.room === room && payload.user !== (fullName || email)) {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+        ctx.lineWidth = payload.size;
+        ctx.lineCap = "round";
+        ctx.strokeStyle = payload.tool === "eraser" ? boardBg : payload.color;
+        ctx.beginPath();
+        ctx.moveTo(payload.fromX, payload.fromY);
+        ctx.lineTo(payload.toX, payload.toY);
+        ctx.stroke();
+      }
+    });
+
+    s.on("clearBoard", () => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = boardBg;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.beginPath();
+      pushHistory();
+    });
+
+    return () => {
+      s.disconnect();
+      setSocket(null);
+    };
+  }, [loggedIn, room, socket, boardBg, fullName, email]);
 
 
   const undo = () => {
@@ -175,14 +226,16 @@ function App() {
   const startDrawing = (e) => {
     setDrawing(true);
     const rect = canvasRef.current.getBoundingClientRect();
-    const ctx = canvasRef.current.getContext("2d");
-    ctx.beginPath();
-    ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+    lastPointRef.current = {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    };
   };
 
   const stopDrawing = () => {
     if (!drawing) return;
     setDrawing(false);
+    lastPointRef.current = null;
     pushHistory();
   };
 
@@ -190,7 +243,18 @@ function App() {
     if (!drawing) return;
 
     const rect = canvasRef.current.getBoundingClientRect();
-    const ctx = canvasRef.current.getContext("2d");
+    const current = {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    };
+    const prev = lastPointRef.current;
+    if (!prev) {
+      lastPointRef.current = current;
+      return;
+    }
+
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
 
     ctx.lineWidth = size;
     ctx.lineCap = "round";
@@ -201,10 +265,26 @@ function App() {
       ctx.strokeStyle = color;
     }
 
-    ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
-    ctx.stroke();
     ctx.beginPath();
-    ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+    ctx.moveTo(prev.x, prev.y);
+    ctx.lineTo(current.x, current.y);
+    ctx.stroke();
+
+    if (socket && room) {
+      socket.emit("drawEvent", {
+        room,
+        user: fullName || email,
+        fromX: prev.x,
+        fromY: prev.y,
+        toX: current.x,
+        toY: current.y,
+        color,
+        size,
+        tool
+      });
+    }
+
+    lastPointRef.current = current;
   };
 
   const clear = () => {
@@ -318,6 +398,23 @@ function App() {
               marginBottom: "15px"
             }}>
               <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
+                <input
+                  placeholder="Room ID"
+                  value={room}
+                  onChange={(e) => setRoom(e.target.value)}
+                  style={{ ...inputStyle, width: "150px" }}
+                />
+                <button
+                  style={btnStyle}
+                  onClick={() => {
+                    if (socket && room) {
+                      socket.emit("joinRoom", { room, user: fullName || email });
+                      alert(`Joined room ${room}`);
+                    }
+                  }}
+                >
+                  Join Room
+                </button>
                 <span>🎨</span>
                 <input type="color" value={color} onChange={(e)=>setColor(e.target.value)} />
                 <label>Thickness:</label>
