@@ -143,6 +143,25 @@ app.get("/users", async (req, res) => {
   }
 });
 
+// ✅ Update profile
+app.put("/profile", async (req, res) => {
+  if (!req.user) return res.status(401).json({ success: false, message: "Not authenticated" });
+  try {
+    const { fullName, address, phone } = req.body;
+    if (!fullName || !address || !phone) {
+      return res.status(400).json({ success: false, message: "All fields are required" });
+    }
+    const phoneRegex = /^\+?[0-9]{7,15}$/;
+    if (!phoneRegex.test(phone)) {
+      return res.status(400).json({ success: false, message: "Invalid phone number" });
+    }
+    await User.findByIdAndUpdate(req.user._id, { fullName, address, phone });
+    res.json({ success: true, message: "Profile updated successfully" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // Real-time socket.io collaboration
 const http = require("http");
 const { Server } = require("socket.io");

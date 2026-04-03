@@ -12,6 +12,7 @@ function App() {
   const [password, setPassword] = useState("");
   const [loggedIn, setLoggedIn] = useState(() => !!localStorage.getItem("user"));
   const [isRegister, setIsRegister] = useState(false);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
 
   const [color, setColor] = useState("#000000");
   const [size, setSize] = useState(3);
@@ -150,6 +151,7 @@ function App() {
   const res = await fetch("http://localhost:5000/register", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
+    credentials: 'include',
     body: JSON.stringify({
       fullName: fullName.trim(),
       address: address.trim(),
@@ -189,6 +191,7 @@ function App() {
   const res = await fetch("http://localhost:5000/login", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
+    credentials: 'include',
     body: JSON.stringify({ email: email.trim().toLowerCase(), password: password.trim() })
   });
 
@@ -220,6 +223,41 @@ function App() {
     setAddress("");
     setPhone("");
     setLoggedIn(false);
+  };
+
+  const updateProfile = async () => {
+    if (!fullName || !address || !phone) {
+      alert("⚠️ Please fill all fields");
+      return;
+    }
+    const phoneRegex = /^\+?[0-9]{7,15}$/;
+    if (!phoneRegex.test(phone.trim())) {
+      alert("⚠️ Please enter a valid phone number");
+      return;
+    }
+
+    const res = await fetch("http://localhost:5000/profile", {
+      method: "PUT",
+      headers: {"Content-Type": "application/json"},
+      credentials: 'include',
+      body: JSON.stringify({
+        fullName: fullName.trim(),
+        address: address.trim(),
+        phone: phone.trim()
+      })
+    });
+
+    const data = await res.json();
+    
+    if (data.success) {
+      localStorage.setItem("fullName", fullName.trim());
+      localStorage.setItem("phone", phone.trim());
+      localStorage.setItem("address", address.trim());
+      setIsEditingProfile(false);
+      alert("✅ Profile updated successfully!");
+    } else {
+      alert(`❌ Update Failed: ${data.message}`);
+    }
   };
 
   // Drawing tools
@@ -443,8 +481,21 @@ function App() {
 
             <div style={{ marginBottom: "16px", textAlign: "left", border: "1px solid #ddd", borderRadius: "10px", padding: "12px", background: "#f9f9f9" }}>
               <h3>Welcome, {fullName || "Guest"}</h3>
-              <p><strong>Phone:</strong> {phone || "Not provided"}</p>
-              <p><strong>Address:</strong> {address || "Not provided"}</p>
+              {isEditingProfile ? (
+                <>
+                  <input placeholder="Full Name" value={fullName} onChange={(e)=>setFullName(e.target.value)} style={{...inputStyle, margin: "5px 0"}}/>
+                  <input placeholder="Address" value={address} onChange={(e)=>setAddress(e.target.value)} style={{...inputStyle, margin: "5px 0"}}/>
+                  <input placeholder="Phone" value={phone} onChange={(e)=>setPhone(e.target.value)} style={{...inputStyle, margin: "5px 0"}}/>
+                  <button style={btnStyle} onClick={updateProfile}>Save Changes</button>
+                  <button style={{...btnStyle, background: "#ccc"}} onClick={() => setIsEditingProfile(false)}>Cancel</button>
+                </>
+              ) : (
+                <>
+                  <p><strong>Phone:</strong> {phone || "Not provided"}</p>
+                  <p><strong>Address:</strong> {address || "Not provided"}</p>
+                  <button style={btnStyle} onClick={() => setIsEditingProfile(true)}>Edit Profile</button>
+                </>
+              )}
             </div>
 
             <canvas
