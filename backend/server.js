@@ -1,5 +1,7 @@
 const express = require("express");
 const cors = require("cors");
+const session = require("express-session");
+const passport = require("passport");
 
 const app = express();
 
@@ -34,4 +36,4 @@ app.post("/login", (req, res) => {
   else res.send({ success: false });
 });
 
-app.listen(5000, () => console.log("Server running on 5000"));
+app.listen(process.env.PORT || 5000, () => console.log(`Server running on port ${process.env.PORT || 5000}`));
