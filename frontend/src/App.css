@@ -52,6 +52,8 @@ html, body, #root {
   padding: 20px;
   max-height: 95vh;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .app-content {
@@ -238,13 +240,14 @@ h1 {
 .drawing-canvas {
   display: block;
   max-width: 100%;
+  width: 100%;
   border: 2px solid #ccc;
   border-radius: 10px;
   cursor: crosshair;
   touch-action: none;
   background: white;
   margin: 15px auto;
-  height: auto;
+  min-height: 300px;
 }
 
 /* Profile Card */

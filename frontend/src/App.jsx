@@ -75,9 +75,13 @@ function App() {
     };
 
     if (loggedIn) {
-      updateCanvasSize();
+      // Use setTimeout to ensure DOM is fully rendered
+      const timer = setTimeout(updateCanvasSize, 0);
       window.addEventListener("resize", updateCanvasSize);
-      return () => window.removeEventListener("resize", updateCanvasSize);
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener("resize", updateCanvasSize);
+      };
     }
   }, [loggedIn, boardBg]);
 
@@ -536,6 +540,7 @@ function App() {
               </div>
 
               <canvas
+                key={`canvas-${loggedIn}`}
                 ref={canvasRef}
                 width={canvasDimensions.width}
                 height={canvasDimensions.height}
