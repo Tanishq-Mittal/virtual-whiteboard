@@ -102,4 +102,22 @@ app.post("/login", async (req, res) => {
   }
 });
 
+// ✅ View all registered users (for testing/admin only)
+app.get("/users", async (req, res) => {
+  try {
+    const users = await User.find({}, { password: 0 }); // Don't show passwords
+    res.json({ 
+      success: true, 
+      totalUsers: users.length, 
+      users: users.map(u => ({
+        email: u.email,
+        source: u.source,
+        createdAt: u.createdAt
+      }))
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 app.listen(process.env.PORT || 5000, () => console.log(`Server running on port ${process.env.PORT || 5000}`));
