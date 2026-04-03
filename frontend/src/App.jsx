@@ -18,6 +18,8 @@ function App() {
   const [tool, setTool] = useState("pen");
   const [history, setHistory] = useState([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
+  const [theme, setTheme] = useState("dark");
+  const [showGrid, setShowGrid] = useState(false);
 
   const pushHistory = () => {
     const canvas = canvasRef.current;
@@ -203,12 +205,38 @@ function App() {
   return (
     <div style={{
       minHeight: "100vh",
-      background: "linear-gradient(to right, #4facfe, #00f2fe)",
+      backgroundImage: `linear-gradient(rgba(2,16,41,0.80), rgba(8,29,62,0.85)), url('https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1600&q=80')`,
+      backgroundSize: "cover",
+      backgroundPosition: "center",
       display: "flex",
       justifyContent: "center",
       alignItems: "center",
-      fontFamily: "Arial"
+      fontFamily: "Inter, Arial, sans-serif",
+      color: "#f5f7ff"
     }}>
+      <div style={{
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: "rgba(3,15,37,0.45)",
+        zIndex: 0
+      }} />
+      <div style={{
+        position: "relative",
+        background: theme === "dark" ? "rgba(14,26,47,0.88)" : "rgba(255,255,255,0.94)",
+        color: theme === "dark" ? "#e6eefc" : "#1f2a44",
+        padding: "30px",
+        borderRadius: "18px",
+        boxShadow: "0 18px 45px rgba(0,0,0,0.35)",
+        textAlign: "center",
+        width: "90%",
+        maxWidth: "980px",
+        zIndex: 1,
+        backdropFilter: "blur(8px)",
+        border: "1px solid rgba(255,255,255,0.2)"
+      }}>
       
       <div style={{
         background: "white",
@@ -287,6 +315,10 @@ function App() {
                 <button style={btnStyle} onClick={redo} disabled={historyIndex >= history.length - 1}>Redo</button>
                 <button style={btnStyle} onClick={clear}>New Board</button>
                 <button style={btnStyle} onClick={save}>Download</button>
+                <button style={btnStyle} onClick={() => setShowGrid(!showGrid)}>
+                  {showGrid ? "Hide Grid" : "Show Grid"}
+                </button>
+                <button style={btnStyle} onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>{theme === "dark" ? "Light Mode" : "Dark Mode"}</button>
                 <button style={btnStyle} onClick={logout}>Logout</button>
               </div>
             </div>
@@ -307,7 +339,10 @@ function App() {
                 height: "auto",
                 border: "2px solid #ccc",
                 borderRadius: "10px",
-                cursor: "crosshair"
+                cursor: "crosshair",
+                background: boardBg,
+                backgroundImage: showGrid ? "linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px)" : "none",
+                backgroundSize: showGrid ? "24px 24px" : "none"
               }}
               onMouseDown={startDrawing}
               onMouseUp={stopDrawing}
