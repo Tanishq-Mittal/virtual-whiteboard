@@ -443,7 +443,6 @@ function App() {
 
             <div style={{ marginBottom: "16px", textAlign: "left", border: "1px solid #ddd", borderRadius: "10px", padding: "12px", background: "#f9f9f9" }}>
               <h3>Welcome, {fullName || "Guest"}</h3>
-              <p><strong>Email:</strong> {email}</p>
               <p><strong>Phone:</strong> {phone || "Not provided"}</p>
               <p><strong>Address:</strong> {address || "Not provided"}</p>
             </div>
