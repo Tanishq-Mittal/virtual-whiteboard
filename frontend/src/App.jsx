@@ -4,6 +4,22 @@ import "./App.css";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5003";
 
+// 🏥 Check if backend is running
+const testBackendConnection = async () => {
+  try {
+    console.log("🔍 Testing backend connection to:", API_URL);
+    const res = await fetch(`${API_URL}/health`);
+    const data = await res.json();
+    console.log("✅ Backend is reachable!", data);
+    return true;
+  } catch (err) {
+    console.error("❌ Backend not reachable:", err.message);
+    console.warn(`Cannot connect to backend at ${API_URL}`);
+    console.warn("Make sure backend is running: cd backend && npm start");
+    return false;
+  }
+};
+
 function App() {
   const canvasRef = useRef(null);
   const [drawing, setDrawing] = useState(false);
@@ -50,6 +66,9 @@ function App() {
       setPhone(localStorage.getItem("phone") || "");
       setLoggedIn(true);
     }
+    
+    // Test backend connection on app load
+    testBackendConnection();
   }, []);
 
   // Handle responsive canvas sizing
@@ -202,6 +221,7 @@ function App() {
   };
 
   const register = async () => {
+  console.log("📝 Register clicked");
   if (!fullName || !address || !phone || !email || !password) {
     alert("⚠️ Please fill all register fields");
     return;
@@ -218,6 +238,7 @@ function App() {
   }
 
   try {
+    console.log("📡 Sending register request to:", API_URL);
     const res = await fetch(`${API_URL}/register`, {
       method: "POST",
       headers: {"Content-Type": "application/json"},
@@ -231,13 +252,17 @@ function App() {
       })
     });
 
+    console.log("📊 Response status:", res.status);
+    
     if (!res.ok) {
       throw new Error(`HTTP error! status: ${res.status}`);
     }
 
     const data = await res.json();
+    console.log("✅ Response data:", data);
     
     if (data.success) {
+      console.log("🎉 Registration successful!");
       alert("✅ Registered Successfully! Please login now.");
       setFullName("");
       setAddress("");
@@ -246,17 +271,19 @@ function App() {
       setPassword("");
       setIsRegister(false);
     } else {
+      console.error("❌ Registration failed:", data.message);
       alert(`❌ Registration Failed: ${data.message || 'Unknown error'}`);
     }
   } catch (err) {
-    console.error("Register error:", err);
-    alert(`❌ Registration Error: ${err.message}. Is the backend server running at ${API_URL}?`);
+    console.error("💥 Register error:", err);
+    alert(`❌ Registration Error: ${err.message}\n\nBackend URL: ${API_URL}\n\nMake sure backend server is running on port 5003!`);
   }
 };
 
 
 
   const login = async () => {
+  console.log("🔐 Login clicked");
   if (!email || !password) {
     alert("⚠️ Enter Email and Password");
     return;
@@ -268,6 +295,7 @@ function App() {
   }
 
   try {
+    console.log("📡 Sending login request to:", API_URL);
     const res = await fetch(`${API_URL}/login`, {
       method: "POST",
       headers: {"Content-Type": "application/json"},
@@ -275,13 +303,17 @@ function App() {
       body: JSON.stringify({ email: email.trim().toLowerCase(), password: password.trim() })
     });
 
+    console.log("📊 Response status:", res.status);
+    
     if (!res.ok) {
       throw new Error(`HTTP error! status: ${res.status}`);
     }
 
     const data = await res.json();
+    console.log("✅ Response data:", data);
 
     if (data.success) {
+      console.log("🎉 Login successful!");
       setLoggedIn(true);
       setFullName(data.user?.fullName || "");
       setAddress(data.user?.address || "");
@@ -295,11 +327,12 @@ function App() {
 
       alert("🎉 Login Successful! Welcome to Whiteboard");
     } else {
+      console.error("❌ Login failed:", data.message);
       alert(`❌ Login Failed: ${data.message || 'Unknown error'}`);
     }
   } catch (err) {
-    console.error("Login error:", err);
-    alert(`❌ Login Error: ${err.message}. Is the backend server running at ${API_URL}?`);
+    console.error("💥 Login error:", err);
+    alert(`❌ Login Error: ${err.message}\n\nBackend URL: ${API_URL}\n\nMake sure backend server is running on port 5003!`);
   }
 };
 
@@ -474,6 +507,14 @@ function App() {
               ) : (
                 <button className="btn-primary btn-large" onClick={login}>Login</button>
               )}
+              
+              <button 
+                className="btn-secondary" 
+                onClick={testBackendConnection}
+                style={{marginTop: '10px', fontSize: '12px', padding: '8px 12px'}}
+              >
+                🔍 Test Backend Connection
+              </button>
             </>
           )}
 
