@@ -44,7 +44,12 @@ passport.deserializeUser(async (id, done) => {
 // ✅ Register
 app.post("/register", async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const email = req.body.email?.trim().toLowerCase();
+    const password = req.body.password?.trim();
+    
+    if (!email || !password) {
+      return res.status(400).json({ success: false, message: "Email and password required" });
+    }
     
     // Check if user exists
     const existing = await User.findOne({ email });
@@ -68,7 +73,12 @@ app.post("/register", async (req, res) => {
 // ✅ Login
 app.post("/login", async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const email = req.body.email?.trim().toLowerCase();
+    const password = req.body.password?.trim();
+    
+    if (!email || !password) {
+      return res.status(400).json({ success: false, message: "Email and password required" });
+    }
     
     // Find user
     const user = await User.findOne({ email });
@@ -85,7 +95,7 @@ app.post("/login", async (req, res) => {
     // Store in session
     req.login(user, (err) => {
       if (err) return res.status(500).json({ success: false, message: err.message });
-      res.json({ success: true, message: "Login successful" });
+      res.json({ success: true, message: "Login successful", email: user.email });
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

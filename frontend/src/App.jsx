@@ -28,14 +28,21 @@ function App() {
     return;
   }
 
-  await fetch("http://localhost:5000/register", {
+  const res = await fetch("http://localhost:5000/register", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ email, password })
+    body: JSON.stringify({ email: email.trim().toLowerCase(), password: password.trim() })
   });
 
-  alert("✅ Registered Successfully!");
-
+  const data = await res.json();
+  
+  if (data.success) {
+    alert("✅ Registered Successfully! Please login now.");
+    setEmail("");
+    setPassword("");
+  } else {
+    alert(`❌ Registration Failed: ${data.message}`);
+  }
 };
 
 
@@ -53,7 +60,7 @@ function App() {
   const res = await fetch("http://localhost:5000/login", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ email, password })
+    body: JSON.stringify({ email: email.trim().toLowerCase(), password: password.trim() })
   });
 
   const data = await res.json();
@@ -64,7 +71,7 @@ function App() {
 
     alert("🎉 Login Successful! Welcome to Whiteboard");
   } else {
-    alert("❌ Wrong Email or Password");
+    alert(`❌ Login Failed: ${data.message}`);
   }
 };
 
