@@ -16,6 +16,9 @@ mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost:27017/whiteboar
 
 // User Schema
 const userSchema = new mongoose.Schema({
+  fullName: { type: String, required: true },
+  address: { type: String, required: true },
+  phone: { type: String, required: true },
   email: { type: String, unique: true, required: true },
   password: { type: String, required: true },
   source: { type: String, default: "manual" },
@@ -44,26 +47,38 @@ passport.deserializeUser(async (id, done) => {
 // ✅ Register
 app.post("/register", async (req, res) => {
   try {
+    const fullName = req.body.fullName?.trim();
+    const address = req.body.address?.trim();
+    const phone = req.body.phone?.trim();
     const email = req.body.email?.trim().toLowerCase();
     const password = req.body.password?.trim();
-    
-    if (!email || !password) {
-      return res.status(400).json({ success: false, message: "Email and password required" });
+
+    if (!fullName || !address || !phone || !email || !password) {
+      return res.status(400).json({ success: false, message: "All fields are required" });
     }
-    
-    // Check if user exists
+
+    const phoneRegex = /^\+?[0-9]{7,15}$/;
+    if (!phoneRegex.test(phone)) {
+      return res.status(400).json({ success: false, message: "Invalid phone number" });
+    }
+
     const existing = await User.findOne({ email });
     if (existing) {
       return res.status(400).json({ success: false, message: "User already exists" });
     }
-    
-    // Hash password
+
     const hashedPassword = await bcrypt.hash(password, 10);
-    
-    // Create user
-    const user = new User({ email, password: hashedPassword, source: "manual" });
+
+    const user = new User({
+      fullName,
+      address,
+      phone,
+      email,
+      password: hashedPassword,
+      source: "manual"
+    });
     await user.save();
-    
+
     res.json({ success: true, message: "User registered successfully" });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -110,7 +125,10 @@ app.get("/users", async (req, res) => {
       success: true, 
       totalUsers: users.length, 
       users: users.map(u => ({
+        fullName: u.fullName,
         email: u.email,
+        phone: u.phone,
+        address: u.address,
         source: u.source,
         createdAt: u.createdAt
       }))

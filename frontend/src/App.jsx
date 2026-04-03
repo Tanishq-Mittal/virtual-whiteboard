@@ -4,9 +4,13 @@ function App() {
   const canvasRef = useRef(null);
   const [drawing, setDrawing] = useState(false);
 
+  const [fullName, setFullName] = useState("");
+  const [address, setAddress] = useState("");
+  const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loggedIn, setLoggedIn] = useState(false);
+  const [isRegister, setIsRegister] = useState(false);
 
   const [color, setColor] = useState("#000000");
   const [size, setSize] = useState(3);
@@ -18,28 +22,43 @@ function App() {
   }, []);
 
   const register = async () => {
-  if (!email || !password) {
-    alert("⚠️ Please fill all fields");
+  if (!fullName || !address || !phone || !email || !password) {
+    alert("⚠️ Please fill all register fields");
     return;
   }
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
+  if (!emailRegex.test(email.trim())) {
     alert("⚠️ Please enter a valid email address (e.g. user@example.com)");
+    return;
+  }
+  const phoneRegex = /^\+?[0-9]{7,15}$/;
+  if (!phoneRegex.test(phone.trim())) {
+    alert("⚠️ Please enter a valid phone number");
     return;
   }
 
   const res = await fetch("http://localhost:5000/register", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ email: email.trim().toLowerCase(), password: password.trim() })
+    body: JSON.stringify({
+      fullName: fullName.trim(),
+      address: address.trim(),
+      phone: phone.trim(),
+      email: email.trim().toLowerCase(),
+      password: password.trim()
+    })
   });
 
   const data = await res.json();
   
   if (data.success) {
     alert("✅ Registered Successfully! Please login now.");
+    setFullName("");
+    setAddress("");
+    setPhone("");
     setEmail("");
     setPassword("");
+    setIsRegister(false);
   } else {
     alert(`❌ Registration Failed: ${data.message}`);
   }
@@ -153,12 +172,37 @@ function App() {
 
         {!loggedIn && (
           <>
-            <input placeholder="Email" onChange={(e)=>setEmail(e.target.value)} style={inputStyle}/>
-            <input type="password" placeholder="Password" onChange={(e)=>setPassword(e.target.value)} style={inputStyle}/>
-            
-            <button style={btnStyle} onClick={register}>Register</button>
-            <button style={btnStyle} onClick={login}>Login</button>
-            
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: "15px" }}>
+              <button
+                style={{ ...btnStyle, marginRight: "10px", background: isRegister ? "#ddd" : "#4facfe", color: isRegister ? "#333" : "white" }}
+                onClick={() => setIsRegister(false)}
+              >
+                Login
+              </button>
+              <button
+                style={{ ...btnStyle, background: isRegister ? "#4facfe" : "#ddd", color: isRegister ? "white" : "#333" }}
+                onClick={() => setIsRegister(true)}
+              >
+                Create Account
+              </button>
+            </div>
+
+            {isRegister && (
+              <>
+                <input placeholder="Full Name" value={fullName} onChange={(e)=>setFullName(e.target.value)} style={inputStyle}/>
+                <input placeholder="Address" value={address} onChange={(e)=>setAddress(e.target.value)} style={inputStyle}/>
+                <input placeholder="Phone" value={phone} onChange={(e)=>setPhone(e.target.value)} style={inputStyle}/>
+              </>
+            )}
+
+            <input placeholder="Email" value={email} onChange={(e)=>setEmail(e.target.value)} style={inputStyle}/>
+            <input type="password" placeholder="Password" value={password} onChange={(e)=>setPassword(e.target.value)} style={inputStyle}/>
+
+            {isRegister ? (
+              <button style={btnStyle} onClick={register}>Create Account</button>
+            ) : (
+              <button style={btnStyle} onClick={login}>Login</button>
+            )}
           </>
         )}
 
