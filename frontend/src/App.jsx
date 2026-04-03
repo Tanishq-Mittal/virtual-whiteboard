@@ -33,6 +33,14 @@ function App() {
 
   // 🔥 keep login after refresh
   useEffect(() => {
+    const savedUser = localStorage.getItem("user");
+    if (savedUser) {
+      setLoggedIn(true);
+      setFullName(localStorage.getItem("fullName") || "");
+      setAddress(localStorage.getItem("address") || "");
+      setPhone(localStorage.getItem("phone") || "");
+      setEmail(savedUser);
+    }
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -137,7 +145,14 @@ function App() {
 
   if (data.success) {
     setLoggedIn(true);
-    localStorage.setItem("user", email);
+    setFullName(data.user?.fullName || "");
+    setAddress(data.user?.address || "");
+    setPhone(data.user?.phone || "");
+    setEmail(data.user?.email || email.trim().toLowerCase());
+    localStorage.setItem("user", data.user?.email || email.trim().toLowerCase());
+    localStorage.setItem("fullName", data.user?.fullName || "");
+    localStorage.setItem("phone", data.user?.phone || "");
+    localStorage.setItem("address", data.user?.address || "");
 
     alert("🎉 Login Successful! Welcome to Whiteboard");
   } else {
@@ -147,6 +162,12 @@ function App() {
 
   const logout = () => {
     localStorage.removeItem("user");
+    localStorage.removeItem("fullName");
+    localStorage.removeItem("phone");
+    localStorage.removeItem("address");
+    setFullName("");
+    setAddress("");
+    setPhone("");
     setLoggedIn(false);
   };
 

@@ -110,7 +110,12 @@ app.post("/login", async (req, res) => {
     // Store in session
     req.login(user, (err) => {
       if (err) return res.status(500).json({ success: false, message: err.message });
-      res.json({ success: true, message: "Login successful", email: user.email });
+      res.json({ success: true, message: "Login successful", user: {
+        fullName: user.fullName,
+        email: user.email,
+        phone: user.phone,
+        address: user.address
+      }});
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
