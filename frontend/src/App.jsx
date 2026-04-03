@@ -61,7 +61,7 @@ function App() {
     if (!loggedIn) return;
     if (socket) return;
 
-    const s = io("http://localhost:5001");
+    const s = io("http://localhost:5002");
     setSocket(s);
 
     s.on("connect", () => {
@@ -148,7 +148,7 @@ function App() {
     return;
   }
 
-  const res = await fetch("http://localhost:5001/register", {
+  const res = await fetch("http://localhost:5002/register", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
     credentials: 'include',
@@ -188,7 +188,7 @@ function App() {
     alert("⚠️ Please enter a valid email address (e.g. user@example.com)");
     return;
   }
-  const res = await fetch("http://localhost:5001/login", {
+  const res = await fetch("http://localhost:5002/login", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
     credentials: 'include',
@@ -236,7 +236,7 @@ function App() {
       return;
     }
 
-    const res = await fetch("http://localhost:5001/profile", {
+    const res = await fetch("http://localhost:5002/profile", {
       method: "PUT",
       headers: {"Content-Type": "application/json"},
       credentials: 'include',
@@ -480,7 +480,7 @@ function App() {
             </div>
 
             <div style={{ marginBottom: "16px", textAlign: "left", border: "1px solid #ddd", borderRadius: "10px", padding: "12px", background: "#f9f9f9" }}>
-              <h3>Welcome, {fullName || "Guest"}</h3>
+              <h3>Welcome, {email || "Guest"}</h3>
               {isEditingProfile ? (
                 <>
                   <input placeholder="Full Name" value={fullName} onChange={(e)=>setFullName(e.target.value)} style={{...inputStyle, margin: "5px 0"}}/>
@@ -491,8 +491,8 @@ function App() {
                 </>
               ) : (
                 <>
-                  <p><strong>Phone:</strong> {phone || "Not provided"}</p>
-                  <p><strong>Address:</strong> {address || "Not provided"}</p>
+                  <p><strong>Phone:</strong> {phone || "Not set"}</p>
+                  <p><strong>Address:</strong> {address || "Not set"}</p>
                   <button style={btnStyle} onClick={() => setIsEditingProfile(true)}>Edit Profile</button>
                 </>
               )}
