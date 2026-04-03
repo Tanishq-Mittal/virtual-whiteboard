@@ -9,10 +9,7 @@ require("dotenv").config();
 const app = express();
 
 // MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost:27017/whiteboard", {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
+mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost:27017/whiteboard");
 
 // User Schema
 const userSchema = new mongoose.Schema({

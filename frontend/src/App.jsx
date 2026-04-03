@@ -61,7 +61,7 @@ function App() {
     if (!loggedIn) return;
     if (socket) return;
 
-    const s = io("http://localhost:5000");
+    const s = io("http://localhost:5001");
     setSocket(s);
 
     s.on("connect", () => {
@@ -148,7 +148,7 @@ function App() {
     return;
   }
 
-  const res = await fetch("http://localhost:5000/register", {
+  const res = await fetch("http://localhost:5001/register", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
     credentials: 'include',
@@ -188,7 +188,7 @@ function App() {
     alert("⚠️ Please enter a valid email address (e.g. user@example.com)");
     return;
   }
-  const res = await fetch("http://localhost:5000/login", {
+  const res = await fetch("http://localhost:5001/login", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
     credentials: 'include',
@@ -236,7 +236,7 @@ function App() {
       return;
     }
 
-    const res = await fetch("http://localhost:5000/profile", {
+    const res = await fetch("http://localhost:5001/profile", {
       method: "PUT",
       headers: {"Content-Type": "application/json"},
       credentials: 'include',
