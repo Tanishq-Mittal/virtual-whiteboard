@@ -2,19 +2,19 @@
   "version": 2,
   "builds": [
     {
-      "src": "server.js",
+      "src": "server-simple.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "/server.js"
+      "dest": "/server-simple.js"
     }
   ],
-  "env": {
-    "MONGODB_URI": "@mongodb_uri",
-    "SESSION_SECRET": "@session_secret",
-    "PORT": "443"
+  "functions": {
+    "server-simple.js": {
+      "maxDuration": 30
+    }
   }
 }
